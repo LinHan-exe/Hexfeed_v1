@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hexfeed V1</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Hexfeed V1</h1>
+    </header>
+    <div class="filter-bar">
+        <div class="timezone-selector">
+            <label for="timezone">Select Timezone:</label>
+            <select id="timezone">
+                <option value="UTC" selected>UTC</option>
+                <option value="America/New_York">New York (EST)</option>
+                <option value="Europe/London">London (GMT)</option>
+                <option value="Asia/Tokyo">Tokyo (JST)</option>
+            </select>
+        </div>
+    </div>
+    <main>
+        <ul id="articles"></ul>
+    </main>
+    <script>
+        let currentTimezone = "UTC";
+        let existingArticles = new Map(); // Change to Map to store more information
+
+        function fetchArticles() {
+            fetch(`/api/articles?timezone=${currentTimezone}`)
+                .then(response => response.json())
+                .then(data => {
+                    const articlesList = document.getElementById('articles');
+                    let newArticlesAdded = false;
+
+                    // Mark all existing articles for potential removal
+                    existingArticles.forEach((value, key) => {
+                        existingArticles.set(key, {...value, toRemove: true});
+                    });
+
+                    // Process the new data
+                    data.forEach((article, index) => {
+                        if (!existingArticles.has(article.title)) {
+                            // New article
+                            const listItem = document.createElement('li');
+                            listItem.innerHTML = `<a href="${article.link}" target="_blank">${article.title}</a>
+                            <p>Published: ${article.published}</p>`;
+                            listItem.classList.add('new-article');
+                            existingArticles.set(article.title, {element: listItem, index: index, toRemove: false});
+                            newArticlesAdded = true;
+                            setTimeout(() => listItem.classList.remove('new-article'), 1000);
+                        } else {
+                            // Existing article, update its position
+                            const articleInfo = existingArticles.get(article.title);
+                            articleInfo.index = index;
+                            articleInfo.toRemove = false;
+                            existingArticles.set(article.title, articleInfo);
+                        }
+                    });
+
+                // Remove articles that are no longer in the feed
+                existingArticles.forEach((value, key) => {
+                    if (value.toRemove) {
+                        value.element.remove();
+                        existingArticles.delete(key);
+                    }
+                });
+
+                // Sort and reorder the articles in the DOM
+                const sortedArticles = Array.from(existingArticles.entries())
+                .sort((a, b) => a[1].index - b[1].index);
+
+                articlesList.innerHTML = '';
+                sortedArticles.forEach(([title, info]) => {
+                    articlesList.appendChild(info.element);
+                });
+
+                if (newArticlesAdded) {
+                    console.log("New articles added!");
+                }
+            });
+        }
+
+        document.getElementById("timezone").addEventListener("change", function() {
+            currentTimezone = this.value;
+            existingArticles.clear();
+            document.getElementById('articles').innerHTML = "";
+            fetchArticles();
+        });
+
+        fetchArticles();
+        setInterval(fetchArticles, 1000); // Fetch every second
+
+    </script>
+</body>
+</html>
