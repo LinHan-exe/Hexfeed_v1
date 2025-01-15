@@ -50,7 +50,7 @@
                             listItem.classList.add('new-article');
                             existingArticles.set(article.title, {element: listItem, index: index, toRemove: false});
                             newArticlesAdded = true;
-                            setTimeout(() => listItem.classList.remove('new-article'), 1000);
+                            setTimeout(() => listItem.classList.remove('new-article'), 1500);
                         } else {
                             // Existing article, update its position
                             const articleInfo = existingArticles.get(article.title);
