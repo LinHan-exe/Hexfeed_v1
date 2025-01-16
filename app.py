@@ -6,8 +6,6 @@ import time
 import threading
 
 app = Flask(__name__)
-if __name__ == '__main__':
-    app.run(host='0.0.0.0')
 
 # Storage for articles
 article_storage = []
@@ -146,4 +144,5 @@ if __name__ == "__main__":
     # Start background threads
     threading.Thread(target=update_articles, daemon=True).start()
     threading.Thread(target=reset_storage, daemon=True).start()
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)
+
