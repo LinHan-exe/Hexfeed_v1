@@ -6,6 +6,8 @@ import time
 import threading
 
 app = Flask(__name__)
+if __name__ == '__main__':
+    app.run(port=8000)
 
 # Storage for articles
 article_storage = []
