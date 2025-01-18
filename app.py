@@ -83,12 +83,15 @@ def update_articles():
 def reset_storage():
     global article_storage
     print("Resetting function: On")
+    current_date = datetime.now(pytz.utc).date()
+    
     while True:
         now_utc = datetime.now(pytz.utc)
-        print(now_utc.date())
-        if now_utc.date() != datetime.now(pytz.utc).date():
+        if now_utc.date() != current_date:
             article_storage = []
-            print("UTC Midnight Detected: Resetting Article Storage")
+            print(f"UTC Date changed from {current_date} to {now_utc.date()}: Resetting Article Storage")
+            current_date = now_utc.date()
+        
         time.sleep(60)  # Check every minute
 
 # API to get stored articles (JSON response)
