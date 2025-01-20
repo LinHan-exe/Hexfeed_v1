@@ -8,7 +8,10 @@
 </head>
 <body>
     <header>
-        <h1>Hexfeed V1</h1>
+        <div class="header-content">
+            <h1>Hexfeed V1</h1>
+            <div id="live-clock"></div>
+        </div>
     </header>
     <div class="filter-bar">
         <div class="timezone-selector">
@@ -82,16 +85,25 @@
                 }
             });
         }
+        
+        function updateClock() {
+            const now = new Date();
+            const options = { timeZone: currentTimezone, hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById('live-clock').textContent = now.toLocaleTimeString('en-US', options);
+        }
 
         document.getElementById("timezone").addEventListener("change", function() {
             currentTimezone = this.value;
             existingArticles.clear();
             document.getElementById('articles').innerHTML = "";
             fetchArticles();
+            updateClock();
         });
 
         fetchArticles();
         setInterval(fetchArticles, 1000); // Fetch every second
+        setInterval(updateClock, 1000); // Update clock every second
+        updateClock(); // Initial clock update
 
     </script>
 </body>
