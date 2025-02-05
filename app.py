@@ -1,14 +1,19 @@
 from flask import Flask, jsonify, render_template, request
+from collections import deque
 import feedparser
 from datetime import datetime
 import pytz
 import time
 import threading
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
 
 app = Flask(__name__)
 
 # Storage for articles
-article_storage = []
+MAX_ARTICLES = 1000
+article_storage = deque(maxlen=MAX_ARTICLES)
 
 # List of RSS feed URLs
 rss_feeds = [
@@ -27,6 +32,14 @@ rss_feeds = [
     #"https://lorem-rss.herokuapp.com/feed",
 ]
 
+def requests_retry_session(retries=3, backoff_factor=0.3):
+    session = requests.Session()
+    retry = Retry(total=retries, backoff_factor=backoff_factor)
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session
+
 # Fetch and parse RSS feeds
 def fetch_articles():
     global article_storage
@@ -36,6 +49,7 @@ def fetch_articles():
     for url in rss_feeds:
         try:
             print(f"Fetching from: {url}")
+            response = requests_retry_session().get(url, timeout=10)
             feed = feedparser.parse(url)
             for entry in feed.entries:
                 if hasattr(entry, 'published'):
