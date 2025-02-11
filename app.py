@@ -43,54 +43,51 @@ def requests_retry_session(retries=3, backoff_factor=0.3):
 # Fetch and parse RSS feeds
 def fetch_articles():
     global article_storage
-    today_utc = datetime.now(pytz.utc).date()
-    new_articles = []
+    while True:
+        today_utc = datetime.now(pytz.utc).date()
+        new_articles = []
 
-    for url in rss_feeds:
-        try:
-            print(f"Fetching from: {url}")
-            response = requests_retry_session().get(url, timeout=10)
-            feed = feedparser.parse(url)
-            for entry in feed.entries:
-                if hasattr(entry, 'published'):
-                    publish_date = None
-                    date_formats = [
-                        "%Y-%m-%dT%H:%M:%SZ",
-                        "%b %d, %Y %H:%M %Z",
-                        "%b %d, %Y %H:%M:%S %Z",
-                        "%a, %d %b %Y %H:%M:%S %z",
-                        "%a, %d %b %Y %H:%M:%S %Z",
-                        "%Y-%m-%d %H:%M:%S",
-                        "%a, %d %b %Y %H:%M:%S GMT",
-                    ]
+        for url in rss_feeds:
+            try:
+                print(f"Fetching from: {url}")
+                response = requests_retry_session().get(url, timeout=10)
+                feed = feedparser.parse(url)
+                for entry in feed.entries:
+                    if hasattr(entry, 'published'):
+                        publish_date = None
+                        date_formats = [
+                            "%Y-%m-%dT%H:%M:%SZ",
+                            "%b %d, %Y %H:%M %Z",
+                            "%b %d, %Y %H:%M:%S %Z",
+                            "%a, %d %b %Y %H:%M:%S %z",
+                            "%a, %d %b %Y %H:%M:%S %Z",
+                            "%Y-%m-%d %H:%M:%S",
+                            "%a, %d %b %Y %H:%M:%S GMT",
+                        ]
 
-                    for date_format in date_formats:
-                        try:
-                            publish_date = datetime.strptime(entry.published, date_format).replace(tzinfo=pytz.UTC).date()
-                            break
-                        except ValueError:
+                        for date_format in date_formats:
+                            try:
+                                publish_date = datetime.strptime(entry.published, date_format).replace(tzinfo=pytz.UTC).date()
+                                break
+                            except ValueError:
+                                continue
+
+                        if publish_date is None:
+                            print(f"Date parsing error for entry: {entry.title}. Date: {entry.published}")
                             continue
 
-                    if publish_date is None:
-                        print(f"Date parsing error for entry: {entry.title}. Date: {entry.published}")
-                        continue
+                        if publish_date == today_utc:
+                            if not any(article['title'] == entry.title for article in article_storage):
+                                new_articles.append({"title": entry.title, "link": entry.link, "published": entry.published})
+                                print(f"Added article: {entry.title}")
 
-                    if publish_date == today_utc:
-                        if not any(article['title'] == entry.title for article in article_storage):
-                            new_articles.append({"title": entry.title, "link": entry.link, "published": entry.published})
-                            print(f"Added article: {entry.title}")
+            except Exception as e:
+                print(f"Error fetching from {url}: {e}")
 
-        except Exception as e:
-            print(f"Error fetching from {url}: {e}")
+        if new_articles:
+            article_storage.extend(new_articles)
+            print(f"Total articles stored: {len(article_storage)}")
 
-    if new_articles:
-        article_storage.extend(new_articles)
-        print(f"Total articles stored: {len(article_storage)}")
-
-# Background thread to continuously fetch articles
-def update_articles():
-    while True:
-        fetch_articles()
         time.sleep(5)  # Update frequency: 5 seconds
 
 # Reset articles at UTC midnight
@@ -161,7 +158,7 @@ def index():
 
 if __name__ == "__main__":
     # Start background threads
-    threading.Thread(target=update_articles, daemon=True).start()
+    threading.Thread(target=fetch_articles, daemon=True).start()
     threading.Thread(target=reset_storage, daemon=True).start()
     app.run(host='0.0.0.0', port=8000, debug=True)
 
