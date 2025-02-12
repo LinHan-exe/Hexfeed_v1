@@ -99,7 +99,7 @@ def reset_storage():
     while True:
         now_utc = datetime.now(pytz.utc)
         if now_utc.date() != current_date:
-            article_storage = []
+            article_storage = deque(maxlen=MAX_ARTICLES)
             print(f"UTC Date changed from {current_date} to {now_utc.date()}: Resetting Article Storage")
             current_date = now_utc.date()
         
