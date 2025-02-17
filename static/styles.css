@@ -14,27 +14,57 @@ header {
 
 .header-content {
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* Center the content horizontally */
     align-items: center;
     max-width: 1880px;
     margin: 0 auto;
+    flex-wrap: wrap;
 }
 
 h1 {
-    margin: 0%;
+    margin: 0;
+    text-align: center; /* Center the text within h1 */
+    flex-basis: 100%; /* Take up full width to ensure centering */
+}
+
+.link-time-bar {
+    background-color: #3a3a3a; /* Dark shade of grey */
+    color: #fff;
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1920px;
+    margin: 0 auto;
+}
+
+#header-links {
+    display: flex;
+    gap: 20px;
+}
+
+#header-links a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+#header-links a:hover {
+    text-decoration: underline;
 }
 
 #live-clock {
-    margin: 0%;
     font-size: 1.2rem;
     font-weight: bold;
 }
 
-
 .filter-bar {
-    background-color: #3e4e5e;
+    background-color: #3e4e5e; /* Same color as before */
     padding: 1rem;
     text-align: center;
+    max-width: 800px; /* Same width as news feed */
+    margin: 1rem auto; /* Center and add margin */
+    border-radius: 20px;
 }
 
 .timezone-selector {
