@@ -156,6 +156,11 @@ def get_articles():
 def index():
     return render_template("index.html")
 
+# Serve the GEX data page
+@app.route("/GEX")
+def gex_data():
+    return render_template("GEX.html")
+
 if __name__ == "__main__":
     # Start background threads
     threading.Thread(target=fetch_articles, daemon=True).start()
