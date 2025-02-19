@@ -5,3 +5,4 @@ requests
 plotify
 streamlit
 py_vollib
+yfinance
