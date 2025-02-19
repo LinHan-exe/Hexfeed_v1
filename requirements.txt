@@ -2,3 +2,6 @@ flask
 feedparser
 pytz
 requests
+python-dotenv
+numpy
+alpaca-py
