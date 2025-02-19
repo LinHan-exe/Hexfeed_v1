@@ -7,3 +7,6 @@ streamlit
 py_vollib
 yfinance
 python-test
+build-essential 
+python3-dev 
+libffi-dev
