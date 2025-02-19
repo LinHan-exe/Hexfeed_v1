@@ -6,5 +6,3 @@ plotify
 streamlit
 py_vollib
 yfinance
-python-dev
-libffi-dev
