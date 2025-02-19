@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GEX Data</title>
     <link rel="stylesheet" href="static/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2/dist/chartjs-plugin-annotation.min.js"></script>
 </head>
 <body>
     <header>
         <div class="header-content">
-            <h1>Hexfeed V1</h1>
+            <h1>Hexfeed V1 - GEX Data</h1>
         </div>
     </header>
     <div class="link-time-bar">
@@ -19,9 +21,119 @@
         </div>
         <div id="live-clock"></div>
     </div>
+
+    <div class="filter-bar">
+        <div class="timezone-selector">
+            <label for="timezone">Select Timezone:</label>
+            <select id="timezone">
+                <option value="UTC" selected>UTC</option>
+                <option value="America/New_York">New York (EST)</option>
+                <option value="America/Los_Angeles">California (PST)</option>
+                <option value="Europe/London">London (GMT</option>
+                <option value="Asia/Kolkata">Kolkata (IST)</option>
+                <option value="Asia/Tokyo">Tokyo (JST)</option>
+            </select>
+        </div>
+    </div>
+
     <main>
-        <h2>GEX Data Content</h2>
-        <p>This is where the GEX data will be displayed.</p>
+        <canvas id="gexChart" width="800" height="400"></canvas>
+        <p id="timeText">Time: </p>
+        <p id="spxPriceText">SPX Price: </p>
+        <p id="totalGexText">Total GEX: </p>
     </main>
+
+    <script>
+        let currentTimezone = "UTC";
+
+        function updateClock() {
+            const now = new Date();
+            const options = { timeZone: currentTimezone, hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById('live-clock').textContent = now.toLocaleTimeString('en-US', options);
+        }
+
+
+        async function fetchGexData() {
+            try {
+                const response = await fetch('/api/gex_data');
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error("Error fetching GEX data:", error);
+                return null;
+            }
+        }
+
+        async function createGexChart() {
+            const gexData = await fetchGexData();
+            if (!gexData) {
+              console.log("GEX data is null. Exiting createGexChart.");
+              return; // Exit if data fetch failed
+            }
+
+            const ctx = document.getElementById('gexChart').getContext('2d');
+            const spxPrice = gexData.spx_price; //Get spx price
+             //Get time and information
+            document.getElementById('timeText').textContent = `Time: ${gexData.current_time}`;
+            document.getElementById('spxPriceText').textContent = `SPX Price: ${spxPrice}`;
+            document.getElementById('totalGexText').textContent = `Total GEX: ${gexData.total_gex}`;
+            //Calculate chart center
+            const chartCenter = spxPrice;
+
+            const chart = new Chart(ctx, {
+                type: 'bar',  // Or 'line' for a line chart, 'bar' for a bar chart
+                data: {
+                    labels: gexData.strikes,  // X-axis: Strike prices
+                    datasets: [{
+                        label: 'Gamma Exposure',
+                        data: gexData.gamma_exposure,  // Y-axis: Gamma exposure values
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        barThickness: 5,
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            min: chartCenter - 125,
+                            max: chartCenter + 125,
+                        },
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                     plugins: {
+                         annotation: {
+                             annotations: [{
+                                 type: 'line',
+                                 scaleID: 'x',
+                                 value: chartCenter,
+                                 borderColor: 'yellow',
+                                 borderWidth: 2,
+                                 label: {
+                                     enabled: false,
+                                 }
+                             }]
+                         }
+                     }
+                }
+            });
+
+        }
+
+
+        document.getElementById("timezone").addEventListener("change", function() {
+            currentTimezone = this.value;
+            updateClock();
+        });
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        createGexChart();
+        setInterval(createGexChart, 300000); // Update every 5 minutes
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2/dist/chartjs-plugin-annotation.min.js"></script>
 </body>
 </html>
