@@ -3,3 +3,5 @@ feedparser
 pytz
 requests
 plotify
+streamlit
+py_vollib
