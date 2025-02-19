@@ -1,0 +1,16 @@
+services:
+  - name: hexfeed_v1
+    git:
+      branch: main  # Or your main branch name
+      repository: LinHan-exe/hexfeed_v1  # Your GitHub repository URL
+    build:
+      build_command: |
+        apt-get update
+        apt-get install -y build-essential python3-dev
+        pip install -r requirements.txt
+      deploy_command: gunicorn --bind 0.0.0.0:8000 app:app
+    ports:
+      - port: 8000
+        protocol: http
+    routes:
+      - path: /
