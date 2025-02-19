@@ -6,3 +6,4 @@ plotify
 streamlit
 py_vollib
 yfinance
+_testcapi
